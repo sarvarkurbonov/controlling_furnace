@@ -1,0 +1,12 @@
+# Organized configuration with backward compatibility.
+# - Preferred: server.port
+# - Legacy (kept for compatibility with current code): top-level "port"
+
+server:
+  port: &http_port "8080"
+
+db:
+  path: &db_path "furnace.db"
+
+# Legacy key used by current code (viper.GetString("port"))
+port: *http_port
