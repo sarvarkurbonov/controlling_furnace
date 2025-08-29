@@ -1,1 +1,5 @@
 .idea/
+
+furnace.db
+furnace.db-shm
+furnace.db-wal
