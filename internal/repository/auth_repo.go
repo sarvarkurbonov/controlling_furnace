@@ -1,7 +1,7 @@
 package repository
 
 import (
-	cf "controlling_furnace"
+	cf "controlling_furnace/internal/models"
 	"database/sql"
 	"errors"
 	"fmt"

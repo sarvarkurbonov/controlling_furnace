@@ -1,0 +1,27 @@
+# Build the Docker image
+build-image:
+	docker build -t controlling-furnace .
+
+# Build the image via Docker Compose (optional alternative)
+build-compose:
+	docker-compose build furnace
+
+# Run the container with port mapping
+run:
+	docker run -p 8080:8080 controlling-furnace
+
+# Run the container via Docker Compose
+run-compose:
+	docker-compose up furnace
+
+# Run all Go tests
+test:
+	go test -v ./...
+
+# Generate Swagger docs
+swag:
+	swag init -g cmd/main.go
+
+# Stop and remove Docker Compose containers
+down:
+	docker-compose down

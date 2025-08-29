@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
+	"controlling_furnace/internal/models"
 	"errors"
 	"fmt"
 	"time"
 
-	"controlling_furnace" // your domain models: FurnaceState, FurnaceEvent
 	"controlling_furnace/internal/repository"
 
 	"github.com/google/uuid"
@@ -41,7 +41,7 @@ func (s *FurnaceService) Start(ctx context.Context) error {
 	}
 	// Initialize default state if empty
 	if st.ID == 0 {
-		st = controlling_furnace.FurnaceState{
+		st = models.FurnaceState{
 			ID:               1,
 			Mode:             "STANDBY",
 			CurrentTempC:     25, // ambient default
@@ -60,7 +60,7 @@ func (s *FurnaceService) Start(ctx context.Context) error {
 		return err
 	}
 
-	return s.eventRepo.Append(ctx, controlling_furnace.FurnaceEvent{
+	return s.eventRepo.Append(ctx, models.FurnaceEvent{
 		EventID:     uuid.NewString(),
 		OccurredAt:  now,
 		Type:        "START",
@@ -90,7 +90,7 @@ func (s *FurnaceService) Stop(ctx context.Context) error {
 		return err
 	}
 
-	return s.eventRepo.Append(ctx, controlling_furnace.FurnaceEvent{
+	return s.eventRepo.Append(ctx, models.FurnaceEvent{
 		EventID:     uuid.NewString(),
 		OccurredAt:  now,
 		Type:        "STOP",
@@ -152,7 +152,7 @@ func (s *FurnaceService) SetMode(ctx context.Context, p ModeParams) error {
 		return err
 	}
 
-	return s.eventRepo.Append(ctx, controlling_furnace.FurnaceEvent{
+	return s.eventRepo.Append(ctx, models.FurnaceEvent{
 		EventID:     uuid.NewString(),
 		OccurredAt:  now,
 		Type:        "MODE_CHANGE",

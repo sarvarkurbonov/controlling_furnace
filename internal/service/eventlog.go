@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
+	"controlling_furnace/internal/models"
 	"errors"
 	"strings"
 	"time"
 
-	"controlling_furnace"
 	"controlling_furnace/internal/repository"
 )
 
@@ -48,7 +48,7 @@ func normalizeAndValidateFilter(f LogFilter) (time.Time, time.Time, string, erro
 	return from, to, eventType, nil
 }
 
-func (s *EventLogService) List(ctx context.Context, f LogFilter) ([]controlling_furnace.FurnaceEvent, error) {
+func (s *EventLogService) List(ctx context.Context, f LogFilter) ([]models.FurnaceEvent, error) {
 	from, to, typ, err := normalizeAndValidateFilter(f)
 	if err != nil {
 		return nil, err

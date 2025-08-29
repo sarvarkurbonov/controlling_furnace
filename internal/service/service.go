@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"controlling_furnace"
+	"controlling_furnace/internal/models"
 	"time"
 
 	// uses your FurnaceState / FurnaceEvent structs
@@ -24,12 +24,12 @@ type Furnace interface {
 
 // Monitoring exposes read-only state (temperature, mode, remaining, errors).
 type Monitoring interface {
-	GetState(ctx context.Context) (controlling_furnace.FurnaceState, error)
+	GetState(ctx context.Context) (models.FurnaceState, error)
 }
 
 // EventLog exposes append-only logs with filtering access.
 type EventLog interface {
-	List(ctx context.Context, f LogFilter) ([]controlling_furnace.FurnaceEvent, error)
+	List(ctx context.Context, f LogFilter) ([]models.FurnaceEvent, error)
 }
 
 // Simulator runs the background loop that updates temperature/remaining time.

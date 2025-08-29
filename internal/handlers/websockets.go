@@ -34,6 +34,22 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool { return true }, // TODO: restrict origins for production
 }
 
+// ... existing code ...
+// @Summary WebSocket: live furnace state stream
+// @Description Establish a WebSocket connection that streams current furnace state periodically.
+// @Description Query params:
+// @Description - interval: Go duration string (e.g., 500ms, 2s). Range: 1ms..10s.
+// @Description - interval_ms: integer milliseconds. Range: 1..10000.
+// @Tags websockets
+// @Produce json
+// @Param interval query string false "Update interval as Go duration (e.g. 500ms, 2s). Max 10s."
+// @Param interval_ms query int false "Update interval in milliseconds. Range: 1-10000."
+// @Success 101 {string} string "Switching Protocols (WebSocket upgrade)"
+// @Header 101 {string} Upgrade "websocket"
+// @Header 101 {string} Connection "Upgrade"
+// @Failure 400 {string} string "Bad request (invalid parameters or upgrade failure)"
+// @Failure 500 {string} string "Internal server error during upgrade"
+// @Router /ws [get]
 func (h *Handler) wsConnect(c *gin.Context) {
 	interval := h.parseInterval(c)
 

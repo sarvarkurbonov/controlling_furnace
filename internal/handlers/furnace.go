@@ -50,13 +50,35 @@ type modeRequest struct {
 	DurationSec int     `json:"duration_sec,omitempty"`  // required if mode=HEAT
 }
 
+// SetModeRequest is an exported model for Swagger docs of the setMode payload.
+type SetModeRequest struct {
+	// Mode to set. Allowed: HEAT, COOL, STANDBY
+	Mode string `json:"mode" example:"HEAT"`
+	// Target temperature in Celsius (required when mode=HEAT)
+	TargetTempC float64 `json:"target_temp_c,omitempty" example:"850"`
+	// Heating duration in seconds (required when mode=HEAT)
+	DurationSec int `json:"duration_sec,omitempty" example:"600"`
+}
+
+// @Summary      Health check
+// @Tags         system
+// @Produce      json
+// @Success      200  {object}  map[string]string
+// @Router       /health [get]
 func (h *Handler) health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": statusOK,
 	})
 }
 
-// ... existing code ...
+// @Summary      Start furnace
+// @Tags         furnace
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}  "status, state"
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /api/v1/furnace/start [post]
+// @Security     BearerAuth
 func (h *Handler) startFurnace(c *gin.Context) {
 	ctx := c.Request.Context()
 	if err := h.services.Furnace.Start(ctx); err != nil {
@@ -66,7 +88,14 @@ func (h *Handler) startFurnace(c *gin.Context) {
 	h.respondWithStatusAndState(c, statusStarted, gin.H{})
 }
 
-// ... existing code ...
+// @Summary      Stop furnace
+// @Tags         furnace
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /api/v1/furnace/stop [post]
+// @Security     BearerAuth
 func (h *Handler) stopFurnace(c *gin.Context) {
 	ctx := c.Request.Context()
 	if err := h.services.Furnace.Stop(ctx); err != nil {
@@ -76,7 +105,18 @@ func (h *Handler) stopFurnace(c *gin.Context) {
 	h.respondWithStatusAndState(c, statusStopped, gin.H{})
 }
 
-// ... existing code ...
+// @Summary      Set mode
+// @Description  HEAT requires target_temp_c and duration_sec
+// @Tags         furnace
+// @Accept       json
+// @Produce      json
+// @Param        body  body   SetModeRequest  true  "Mode payload"
+// @Success      200   {object}  map[string]interface{}
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /api/v1/furnace/mode [post]
+// @Security     BearerAuth
 func (h *Handler) setMode(c *gin.Context) {
 	var req modeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -101,7 +141,14 @@ func (h *Handler) setMode(c *gin.Context) {
 	h.respondWithStatusAndState(c, statusModeSet, gin.H{"mode": req.Mode})
 }
 
-// ... existing code ...
+// @Summary      Get furnace state
+// @Tags         furnace
+// @Produce      json
+// @Success      200  {object}  map[string]interface{}
+// @Failure      401  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /api/v1/furnace/state [get]
+// @Security     BearerAuth
 func (h *Handler) getState(c *gin.Context) {
 	ctx := c.Request.Context()
 	st, err := h.services.Monitoring.GetState(ctx)

@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"controlling_furnace/internal/models"
 	"time"
 
-	"controlling_furnace"
 	"controlling_furnace/internal/repository"
 )
 
@@ -24,10 +24,10 @@ func NewMonitoringService(stateRepo repository.StateRepo) *MonitoringService {
 
 // GetState returns the latest persisted furnace state.
 // If no state is persisted yet, returns a baseline STANDBY snapshot.
-func (s *MonitoringService) GetState(ctx context.Context) (controlling_furnace.FurnaceState, error) {
+func (s *MonitoringService) GetState(ctx context.Context) (models.FurnaceState, error) {
 	state, err := s.stateRepo.Load(ctx)
 	if err != nil {
-		return controlling_furnace.FurnaceState{}, err
+		return models.FurnaceState{}, err
 	}
 	if state.ID == 0 {
 		return s.baselineState(), nil
@@ -39,8 +39,8 @@ func (s *MonitoringService) GetState(ctx context.Context) (controlling_furnace.F
 // ... existing code ...
 
 // baselineState returns a sensible default snapshot for an uninitialized DB.
-func (s *MonitoringService) baselineState() controlling_furnace.FurnaceState {
-	return controlling_furnace.FurnaceState{
+func (s *MonitoringService) baselineState() models.FurnaceState {
+	return models.FurnaceState{
 		ID:               1, // DB schema enforces single-row state with id=1
 		Mode:             modeStandby,
 		CurrentTempC:     defaultAmbientTempC,

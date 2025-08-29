@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	"controlling_furnace/internal/models"
 	"time"
 
-	"controlling_furnace"
 	"controlling_furnace/internal/repository"
 
 	"github.com/google/uuid"
@@ -56,7 +56,7 @@ func (s *SimulatorService) Run(ctx context.Context, tick time.Duration) {
 			}
 			// Initialize state if empty
 			if st.ID == 0 {
-				st = controlling_furnace.FurnaceState{
+				st = models.FurnaceState{
 					ID:           1,
 					Mode:         ModeStandby,
 					CurrentTempC: AmbientC,
@@ -126,7 +126,7 @@ func (s *SimulatorService) Run(ctx context.Context, tick time.Duration) {
 // ... existing code ...
 
 // driftToAmbient cools toward ambient when not running. Returns true if temp changed.
-func (s *SimulatorService) driftToAmbient(st *controlling_furnace.FurnaceState, elapsed float64) bool {
+func (s *SimulatorService) driftToAmbient(st *models.FurnaceState, elapsed float64) bool {
 	if st.CurrentTempC > AmbientC {
 		st.CurrentTempC = maxFloat(st.CurrentTempC-StandbyCoolPerSec*elapsed, AmbientC)
 		return true
@@ -136,7 +136,7 @@ func (s *SimulatorService) driftToAmbient(st *controlling_furnace.FurnaceState, 
 
 // handleHeat advances temperature toward target and decrements soak timer.
 // May switch to COOL and append an event. Returns true if state changed.
-func (s *SimulatorService) handleHeat(ctx context.Context, st *controlling_furnace.FurnaceState, elapsed float64, now time.Time) bool {
+func (s *SimulatorService) handleHeat(ctx context.Context, st *models.FurnaceState, elapsed float64, now time.Time) bool {
 	changed := false
 	tempChanged := false
 	soakElapsed := 0.0
@@ -179,7 +179,7 @@ func (s *SimulatorService) handleHeat(ctx context.Context, st *controlling_furna
 			} else {
 				st.RemainingSeconds = 0
 				st.Mode = ModeCool
-				_ = s.eventRepo.Append(ctx, controlling_furnace.FurnaceEvent{
+				_ = s.eventRepo.Append(ctx, models.FurnaceEvent{
 					EventID:     uuid.NewString(),
 					OccurredAt:  now.UTC(),
 					Type:        "MODE_CHANGE",
@@ -199,7 +199,7 @@ func (s *SimulatorService) handleHeat(ctx context.Context, st *controlling_furna
 }
 
 // handleCooling cools toward ambient by a given rate. Returns true if temp changed.
-func (s *SimulatorService) handleCooling(st *controlling_furnace.FurnaceState, elapsed float64, ratePerSec float64) bool {
+func (s *SimulatorService) handleCooling(st *models.FurnaceState, elapsed float64, ratePerSec float64) bool {
 	if st.CurrentTempC > AmbientC {
 		st.CurrentTempC = maxFloat(st.CurrentTempC-ratePerSec*elapsed, AmbientC)
 		return true
@@ -209,14 +209,14 @@ func (s *SimulatorService) handleCooling(st *controlling_furnace.FurnaceState, e
 
 // detectAndLogOverheat appends an error event and sets error code if needed.
 // Returns true if state changed (error code added).
-func (s *SimulatorService) detectAndLogOverheat(ctx context.Context, st *controlling_furnace.FurnaceState, now time.Time) bool {
+func (s *SimulatorService) detectAndLogOverheat(ctx context.Context, st *models.FurnaceState, now time.Time) bool {
 	stateChanged := false
 	if st.CurrentTempC > MaxSafeC {
 		if !hasString(st.ErrorCodes, "OVERHEAT") {
 			st.ErrorCodes = append(st.ErrorCodes, "OVERHEAT")
 			stateChanged = true
 		}
-		_ = s.eventRepo.Append(ctx, controlling_furnace.FurnaceEvent{
+		_ = s.eventRepo.Append(ctx, models.FurnaceEvent{
 			EventID:     uuid.NewString(),
 			OccurredAt:  now.UTC(),
 			Type:        "ERROR",

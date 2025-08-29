@@ -1,0 +1,360 @@
+basePath: /
+consumes:
+- application/json
+definitions:
+  handlers.AuthCredentials:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handlers.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.SetModeRequest:
+    properties:
+      duration_sec:
+        description: Heating duration in seconds (required when mode=HEAT)
+        example: 600
+        type: integer
+      mode:
+        description: 'Mode to set. Allowed: HEAT, COOL, STANDBY'
+        example: HEAT
+        type: string
+      target_temp_c:
+        description: Target temperature in Celsius (required when mode=HEAT)
+        example: 850
+        type: number
+    type: object
+  handlers.SignUpResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  handlers.TokenResponse:
+    properties:
+      token:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST + WebSocket API to manage a crematory furnace (modes, monitoring,
+    logs).
+  title: Crematory Furnace API
+  version: "1.0"
+paths:
+  /api/v1/furnace/mode:
+    post:
+      consumes:
+      - application/json
+      description: HEAT requires target_temp_c and duration_sec
+      parameters:
+      - description: Mode payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SetModeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Set mode
+      tags:
+      - furnace
+  /api/v1/furnace/start:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: status, state
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Start furnace
+      tags:
+      - furnace
+  /api/v1/furnace/state:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get furnace state
+      tags:
+      - furnace
+  /api/v1/furnace/stop:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Stop furnace
+      tags:
+      - furnace
+  /api/v1/logs:
+    get:
+      description: Filter logs by date (RFC3339, 'YYYY-MM-DD HH:MM:SS', or 'YYYY-MM-DD').
+        If 'to' is date-only, it is treated as end-of-day inclusive (23:59:59.999999999Z).
+      parameters:
+      - description: Start of range (RFC3339, 'YYYY-MM-DD HH:MM:SS', or 'YYYY-MM-DD')
+        example: "2025-08-01"
+        in: query
+        name: from
+        type: string
+      - description: End of range (RFC3339, 'YYYY-MM-DD HH:MM:SS', or 'YYYY-MM-DD').
+          Date-only treated as end of day.
+        example: "2025-08-31"
+        in: query
+        name: to
+        type: string
+      - description: Event type
+        enum:
+        - START
+        - MODE_CHANGE
+        - STOP
+        - ERROR
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: count, events
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: List logs
+      tags:
+      - logs
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return a JWT token
+      operationId: authSignIn
+      parameters:
+      - description: User credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AuthCredentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.TokenResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Sign in
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user
+      operationId: authSignUp
+      parameters:
+      - description: User credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.AuthCredentials'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SignUpResponse'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Sign up
+      tags:
+      - auth
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - system
+  /ws:
+    get:
+      description: |-
+        Establish a WebSocket connection that streams current furnace state periodically.
+        Query params:
+        - interval: Go duration string (e.g., 500ms, 2s). Range: 1ms..10s.
+        - interval_ms: integer milliseconds. Range: 1..10000.
+      parameters:
+      - description: Update interval as Go duration (e.g. 500ms, 2s). Max 10s.
+        in: query
+        name: interval
+        type: string
+      - description: 'Update interval in milliseconds. Range: 1-10000.'
+        in: query
+        name: interval_ms
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols (WebSocket upgrade)
+          headers:
+            Connection:
+              description: Upgrade
+              type: string
+            Upgrade:
+              description: websocket
+              type: string
+          schema:
+            type: string
+        "400":
+          description: Bad request (invalid parameters or upgrade failure)
+          schema:
+            type: string
+        "500":
+          description: Internal server error during upgrade
+          schema:
+            type: string
+      summary: 'WebSocket: live furnace state stream'
+      tags:
+      - websockets
+produces:
+- application/json
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: 'Provide a valid JWT token as: "Bearer <token>"'
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

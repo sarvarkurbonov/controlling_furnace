@@ -1,7 +1,29 @@
+// @title           Crematory Furnace API
+// @version         1.0
+// @description     REST + WebSocket API to manage a crematory furnace (modes, monitoring, logs).
+// @BasePath        /
+// @host            localhost:8080
+// @schemes         http
+// @accept          json
+// @produce         json
+//
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description     Provide a valid JWT token as: "Bearer <token>"
+//
+// @tag.name        Auth
+// @tag.description Authentication and token management
+// @tag.name        Furnace
+// @tag.description Furnace control and monitoring
+// @tag.name        Admin
+// @tag.description Administrative operations and logs
+
 package main
 
 import (
 	"context"
+	"controlling_furnace/internal/repository/db"
 	"database/sql"
 	"os"
 	"os/signal"
@@ -14,6 +36,7 @@ import (
 	"controlling_furnace/internal/server"
 	"controlling_furnace/internal/service"
 
+	_ "controlling_furnace/docs"
 	"github.com/spf13/viper"
 )
 
@@ -74,7 +97,7 @@ func openDB(log *logger.Logger) (*sql.DB, error) {
 		log.Infow("db.path not set in config; using default file", "default", "app.db")
 		dbPath = "app.db"
 	}
-	return repository.InitDB(dbPath)
+	return db.InitDB(dbPath)
 }
 
 // runHTTPServer runs the HTTP server in a separate goroutine.

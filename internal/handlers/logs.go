@@ -23,6 +23,19 @@ func isDateOnly(s string) bool {
 	return !strings.ContainsAny(s, "T ")
 }
 
+// @Summary      List logs
+// @Description  Filter logs by date (RFC3339, 'YYYY-MM-DD HH:MM:SS', or 'YYYY-MM-DD'). If 'to' is date-only, it is treated as end-of-day inclusive (23:59:59.999999999Z).
+// @Tags         logs
+// @Produce      json
+// @Param        from  query   string  false  "Start of range (RFC3339, 'YYYY-MM-DD HH:MM:SS', or 'YYYY-MM-DD')"  example(2025-08-01)
+// @Param        to    query   string  false  "End of range (RFC3339, 'YYYY-MM-DD HH:MM:SS', or 'YYYY-MM-DD'). Date-only treated as end of day."  example(2025-08-31)
+// @Param        type  query   string  false  "Event type"  Enums(START,MODE_CHANGE,STOP,ERROR)
+// @Success      200   {object}  map[string]interface{}  "count, events"
+// @Failure      400   {object}  map[string]string
+// @Failure      401   {object}  map[string]string
+// @Failure      500   {object}  map[string]string
+// @Router       /api/v1/logs [get]
+// @Security     BearerAuth
 func (h *Handler) getLogs(c *gin.Context) {
 	ctx := c.Request.Context()
 	var (

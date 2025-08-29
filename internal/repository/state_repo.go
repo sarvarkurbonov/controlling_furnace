@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"controlling_furnace"
+	"controlling_furnace/internal/models"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -62,7 +62,7 @@ func unmarshalErrorCodes(s string) ([]string, error) {
 }
 
 // Save updates or inserts the furnace_state row (id always 1).
-func (r *StateSQLite) Save(ctx context.Context, state controlling_furnace.FurnaceState) error {
+func (r *StateSQLite) Save(ctx context.Context, state models.FurnaceState) error {
 	errorsJSONStr, err := marshalErrorCodes(state.ErrorCodes)
 	if err != nil {
 		return err
@@ -90,10 +90,10 @@ func (r *StateSQLite) Save(ctx context.Context, state controlling_furnace.Furnac
 }
 
 // Load fetches the single furnace_state row (id=1).
-func (r *StateSQLite) Load(ctx context.Context) (controlling_furnace.FurnaceState, error) {
+func (r *StateSQLite) Load(ctx context.Context) (models.FurnaceState, error) {
 	row := r.db.QueryRowContext(ctx, selectStateSQL, furnaceStateRowID)
 
-	var s controlling_furnace.FurnaceState
+	var s models.FurnaceState
 	var errorsJSONStr string
 	if err := row.Scan(
 		&s.ID,
@@ -106,14 +106,14 @@ func (r *StateSQLite) Load(ctx context.Context) (controlling_furnace.FurnaceStat
 		&s.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return controlling_furnace.FurnaceState{}, nil // no state yet
+			return models.FurnaceState{}, nil // no state yet
 		}
-		return controlling_furnace.FurnaceState{}, err
+		return models.FurnaceState{}, err
 	}
 
 	codes, err := unmarshalErrorCodes(errorsJSONStr)
 	if err != nil {
-		return controlling_furnace.FurnaceState{}, err
+		return models.FurnaceState{}, err
 	}
 	s.ErrorCodes = codes
 	s.UpdatedAt = s.UpdatedAt.UTC()

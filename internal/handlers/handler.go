@@ -5,6 +5,9 @@ import (
 	"controlling_furnace/internal/service"
 
 	"github.com/gin-gonic/gin"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Handler wires HTTP layer to services and logging.
@@ -22,6 +25,8 @@ func NewHandler(services *service.Service, log *logger.Logger) *Handler {
 func (h *Handler) InitRoutes() *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Health endpoint
 	router.GET("/health", h.health)

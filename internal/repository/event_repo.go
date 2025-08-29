@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"controlling_furnace"
+	"controlling_furnace/internal/models"
 	"database/sql"
 	"encoding/json"
 	"strings"
@@ -18,7 +18,7 @@ type EventSQLite struct {
 func NewEventSQLite(db *sql.DB) *EventSQLite { return &EventSQLite{db: db} }
 
 // Append inserts a new event. If EventID or OccurredAt are empty, they’re set.
-func (r *EventSQLite) Append(ctx context.Context, e controlling_furnace.FurnaceEvent) error {
+func (r *EventSQLite) Append(ctx context.Context, e models.FurnaceEvent) error {
 	if e.EventID == "" {
 		e.EventID = uuid.NewString()
 	}
@@ -53,7 +53,7 @@ func (r *EventSQLite) Append(ctx context.Context, e controlling_furnace.FurnaceE
 }
 
 // List returns events filtered by [from, to] (inclusive) and/or type, ordered ASC.
-func (r *EventSQLite) List(ctx context.Context, from, to time.Time, typ string) ([]controlling_furnace.FurnaceEvent, error) {
+func (r *EventSQLite) List(ctx context.Context, from, to time.Time, typ string) ([]models.FurnaceEvent, error) {
 	var (
 		conds []string
 		args  []any
@@ -84,9 +84,9 @@ func (r *EventSQLite) List(ctx context.Context, from, to time.Time, typ string) 
 	}
 	defer rows.Close()
 
-	out := make([]controlling_furnace.FurnaceEvent, 0, 64)
+	out := make([]models.FurnaceEvent, 0, 64)
 	for rows.Next() {
-		var ev controlling_furnace.FurnaceEvent
+		var ev models.FurnaceEvent
 		var metaStr sql.NullString
 		if err := rows.Scan(&ev.EventID, &ev.OccurredAt, &ev.Type, &ev.Description, &metaStr); err != nil {
 			return nil, err
